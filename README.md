@@ -5,5 +5,5 @@
 
 ## Setup
 ```
-pip install pyserial opencv-python numpy python_dotenv
+pip install -r requirements.txt
 ```
