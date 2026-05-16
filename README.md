@@ -1,9 +1,9 @@
 # Robot2026
 
-### A este punto el archivo más actualizado es el de chat, a la espera de la combinacion con el de claude (Solo realizable con intfraestructura)
+### A este punto el archivo más actualizado es el code2, a la espera de la combinacion con el code3 (Solo realizable con intfraestructura), todavia no se han realizado pruebas sobre el code 3 por la falta de recursos, sistema de detección completamente funcional
 
 
-#### Setup
-'''
+## Setup
+```
 pip install pyserial opencv-python numpy python_dotenv
-'''
+```
