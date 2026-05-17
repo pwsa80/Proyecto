@@ -18,13 +18,13 @@ primera ejecución o reinicio
 ```
 setup.bat
 ```
+
 ## Activacion y ejecición
 activación
 ```
 .venv\Scripts\activate.bat
 ```
-ejecición
+ejecución
 ```
 python3 camera-system.py
 ```
-cualquier cambio realizado en el .env va a requerir un reinicio a partir del entorno (puedes usar setup.bat para reiniciar)
