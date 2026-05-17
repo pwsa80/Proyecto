@@ -5,13 +5,15 @@
 
 ## Asegurate de tener python instalado y actualizado
 ```
-python3 -m pip install --upgrade pip
+python.exe -m pip install --upgrade pip
 ```
 
-## Librerias del sistema
+## Entorno
 ```
-sudo apt update
-sudo apt install -y libgl1 libglib2.0-0
+python3 -m venv .venv
+```
+```
+.venv\Scripts\activate.bat
 ```
 
 ## Setup
