@@ -15,7 +15,9 @@ python3 -m venv .venv
 ```
 .venv\Scripts\activate.bat
 ```
-
+```
+python.exe -m pip install --upgrade pip
+```
 ## Setup
 ```
 pip install -r requirements.txt
