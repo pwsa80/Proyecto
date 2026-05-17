@@ -27,4 +27,4 @@ python.exe -m pip install --upgrade pip
 ```
 pip install -r requirements.txt
 ```
-cualquier cambio realizado en el .env va a requerir un reinicio a partri del entorno
+cualquier cambio realizado en el .env va a requerir un reinicio a partir del entorno
