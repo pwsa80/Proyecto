@@ -26,3 +26,14 @@ setup.bat
 ```
 python3 camera-system.py
 ```
+
+## About us
+trabajamos en el proyecto de robotica del colegio sagrado corazón via pto colombia
+
+los registros de todas nuestras actividades se encuentran en los blogs de cada uno
+
+## Blogs
+[![isaacariza](https://img.shields.io/badge/Blog_Isaac_Ariza-000?style=for-the-badge)](https://robotcafetera2.blogspot.com/)
+[![rafaeldelacruz](https://img.shields.io/badge/Blog_Rafael_de_la_cruz-000?style=for-the-badge)](https://rafaeldc11b.blogspot.com)
+[![valenthinaolmos](https://img.shields.io/badge/Blog_Valenthina_Olmos-000?style=for-the-badge)](https://valenthinaolmos.blogspot.com/)
+[![sergiopallares](https://img.shields.io/badge/Blog_Sergio_Pallares-FFC054?style=for-the-badge)](https://cafeteramovil1.blogspot.com/)
