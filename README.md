@@ -20,11 +20,9 @@ setup.bat
 ```
 
 ## Activacion y ejecición
-activación
 ```
 .venv\Scripts\activate.bat
 ```
-ejecución
 ```
 python3 camera-system.py
 ```
