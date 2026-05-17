@@ -5,7 +5,7 @@
 A este punto el archivo más actualizado es el code2, a la espera de la combinacion con el code3 (Solo realizable con intfraestructura), todavia no se han realizado pruebas sobre el code 3 por la falta de recursos, sistema de detección completamente funcional
 
 
-## Asegurate de tener python instalado y actualizado
+## Before starting
 ```
 python.exe -m pip install --upgrade pip
 ```
@@ -21,7 +21,7 @@ copy con .env
 setup.bat
 ```
 
-## Activacion y ejecición
+## Run code
 ```
 .venv\Scripts\activate.bat
 ```
