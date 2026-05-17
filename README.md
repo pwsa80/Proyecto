@@ -13,18 +13,18 @@ python.exe -m pip install --upgrade pip
 copy con .env
 ```
 
-## Entorno
+## Setup
+primera ejecución o reinicio
 ```
-python3 -m venv .venv
+setup.bat
 ```
+## Activacion y ejecición
+activación
 ```
 .venv\Scripts\activate.bat
 ```
+ejecición
 ```
-python.exe -m pip install --upgrade pip
+python3 camera-system.py
 ```
-## Setup
-```
-pip install -r requirements.txt
-```
-cualquier cambio realizado en el .env va a requerir un reinicio a partir del entorno
+cualquier cambio realizado en el .env va a requerir un reinicio a partir del entorno (puedes usar setup.bat para reiniciar)
