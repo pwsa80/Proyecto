@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 load_dotenv('.env')
 
 # ================= CONFIG =================
-USE_IP_CAMERA = False
+USE_IP_CAMERA = True
 USE_TRACKBARS = False
 
 if USE_IP_CAMERA:
