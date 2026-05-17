@@ -8,6 +8,11 @@
 python.exe -m pip install --upgrade pip
 ```
 
+## Env file
+```
+copy con .env
+```
+
 ## Entorno
 ```
 python3 -m venv .venv
