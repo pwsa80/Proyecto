@@ -1,3 +1,5 @@
+######## USAR ESTE CODIGO DE ACUERDO A LA CALIDAD DE VIDEO QUE SE TENGA (BAJA CALIDAD)
+
 import cv2
 import numpy as np
 import time
@@ -11,7 +13,7 @@ load_dotenv('.env')
 # ================= CONFIG =================
 
 USE_IP_CAMERA = False
-USE_TRACKBARS = False
+USE_TRACKBARS = True
 USE_SERIAL = True
 
 if USE_IP_CAMERA:
@@ -24,9 +26,9 @@ TARGET_HEIGHT = 900
 
 # ===== DETECCIÓN =====
 
-H_BASE = 15
-H_MARGIN = 18
-S_MIN = 200
+H_BASE = 20
+H_MARGIN = 20
+S_MIN = 140
 V_MIN = 120
 S_MAX = 255
 V_MAX = 255
