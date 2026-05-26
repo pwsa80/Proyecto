@@ -12,6 +12,7 @@ load_dotenv('.env')
 
 USE_IP_CAMERA = False
 USE_TRACKBARS = False
+MASKON = False
 USE_SERIAL = True
 
 if USE_IP_CAMERA:
@@ -39,16 +40,17 @@ ASPECT_TOL = 0.6
 alpha = 0.7
 prev_center = None
 
-# ===== SERVO =====
+# ===== SERVOS =====
 
-prev_servo = 90
+prev_servo_x = 90
+prev_servo_y = 90
+
 SEND_INTERVAL = 0.015
 
 WIN_NAME = "Tracking Balon Naranja"
 
 # ==========================================
 
-# 🔌 Detección Arduino
 def find_arduino_port():
 
     ports = serial.tools.list_ports.comports()
@@ -104,7 +106,7 @@ class SerialCommander:
 
         print(f"✅ Serial conectado: {port}")
 
-    def send(self, angle):
+    def send(self, angle_x, angle_y):
 
         current_time = time.time()
 
@@ -113,7 +115,9 @@ class SerialCommander:
 
         try:
 
-            self.ser.write(f"{angle}\n".encode())
+            command = f"{angle_x},{angle_y}\n"
+
+            self.ser.write(command.encode())
 
             self.last_send_time = current_time
 
@@ -179,10 +183,38 @@ cv2.namedWindow(WIN_NAME)
 
 if USE_TRACKBARS:
 
-    cv2.createTrackbar("H", WIN_NAME, H_BASE, 179, lambda x: None)
-    cv2.createTrackbar("H_MARGIN", WIN_NAME, H_MARGIN, 50, lambda x: None)
-    cv2.createTrackbar("S_MIN", WIN_NAME, S_MIN, 255, lambda x: None)
-    cv2.createTrackbar("V_MIN", WIN_NAME, V_MIN, 255, lambda x: None)
+    cv2.createTrackbar(
+        "H",
+        WIN_NAME,
+        H_BASE,
+        179,
+        lambda x: None
+    )
+
+    cv2.createTrackbar(
+        "H_MARGIN",
+        WIN_NAME,
+        H_MARGIN,
+        50,
+        lambda x: None
+    )
+
+    cv2.createTrackbar(
+        "S_MIN",
+        WIN_NAME,
+        S_MIN,
+        255,
+        lambda x: None
+    )
+
+    cv2.createTrackbar(
+        "V_MIN",
+        WIN_NAME,
+        V_MIN,
+        255,
+        lambda x: None
+    )
+
 
 # ==========================================
 
@@ -224,10 +256,30 @@ while True:
 
     if USE_TRACKBARS:
 
-        H_BASE = cv2.getTrackbarPos("H", WIN_NAME)
-        H_MARGIN = cv2.getTrackbarPos("H_MARGIN", WIN_NAME)
-        S_MIN = cv2.getTrackbarPos("S_MIN", WIN_NAME)
-        V_MIN = cv2.getTrackbarPos("V_MIN", WIN_NAME)
+        try:
+
+            H_BASE = cv2.getTrackbarPos(
+                "H",
+                WIN_NAME
+            )
+
+            H_MARGIN = cv2.getTrackbarPos(
+                "H_MARGIN",
+                WIN_NAME
+            )
+
+            S_MIN = cv2.getTrackbarPos(
+                "S_MIN",
+                WIN_NAME
+            )
+
+            V_MIN = cv2.getTrackbarPos(
+                "V_MIN",
+                WIN_NAME
+            )
+
+        except:
+            pass
 
     # ======================================
     # HSV
@@ -325,54 +377,73 @@ while True:
 
         prev_center = smooth_center
 
-        # ==================================
-        # ERROR X
-        # ==================================
-
         fh, fw = frame.shape[:2]
 
         frame_center_x = fw // 2
+        frame_center_y = fh // 2
+
+        # ==================================
+        # ERRORES
+        # ==================================
 
         error_x = smooth_center[0] - frame_center_x
+        error_y = smooth_center[1] - frame_center_y
 
         # ==================================
-        # MAPEO DIRECTO A GRADOS
+        # MAPEO X
         # ==================================
 
-        MAX_ERROR = frame_center_x
+        MAX_ERROR_X = frame_center_x
 
-        servo_angle = np.interp(
+        servo_x = np.interp(
             error_x,
-            [-MAX_ERROR, MAX_ERROR],
+            [-MAX_ERROR_X, MAX_ERROR_X],
             [0, 180]
         )
 
-        servo_angle = int(
-            np.clip(
-                servo_angle,
-                0,
-                180
-            )
+        servo_x = int(np.clip(servo_x, 0, 180))
+
+        # ==================================
+        # MAPEO Y
+        # ==================================
+
+        MAX_ERROR_Y = 400
+
+        servo_y = np.interp(
+            error_y,
+            [-MAX_ERROR_Y, MAX_ERROR_Y],
+            [0, 180]
         )
 
+        servo_y = int(np.clip(servo_y, 0, 180))
+
         # ==================================
-        # SUAVIZADO DEL SERVO
+        # SUAVIZADO SERVOS
         # ==================================
 
-        servo_angle = int(
-            prev_servo * 0.7 +
-            servo_angle * 0.3
+        servo_x = int(
+            prev_servo_x * 0.7 +
+            servo_x * 0.3
         )
 
-        prev_servo = servo_angle
+        servo_y = int(
+            prev_servo_y * 0.7 +
+            servo_y * 0.3
+        )
+
+        prev_servo_x = servo_x
+        prev_servo_y = servo_y
 
         # ==================================
-        # ENVIAR SERIAL
+        # SERIAL
         # ==================================
 
         if serial_cmd:
 
-            serial_cmd.send(servo_angle)
+            serial_cmd.send(
+                servo_x,
+                servo_y
+            )
 
         # ==================================
         # VISUAL
@@ -394,11 +465,21 @@ while True:
             -1
         )
 
+        # Línea vertical
         cv2.line(
             frame,
             (frame_center_x, 0),
             (frame_center_x, fh),
             (255, 0, 0),
+            2
+        )
+
+        # Línea horizontal
+        cv2.line(
+            frame,
+            (0, frame_center_y),
+            (fw, frame_center_y),
+            (0, 255, 0),
             2
         )
 
@@ -414,8 +495,28 @@ while True:
 
         cv2.putText(
             frame,
-            f"Servo: {servo_angle}",
+            f"Error Y: {int(error_y)}",
             (10, 90),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.7,
+            (0, 255, 255),
+            2
+        )
+
+        cv2.putText(
+            frame,
+            f"Servo X: {servo_x}",
+            (10, 120),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.7,
+            (255, 255, 255),
+            2
+        )
+
+        cv2.putText(
+            frame,
+            f"Servo Y: {servo_y}",
+            (10, 150),
             cv2.FONT_HERSHEY_SIMPLEX,
             0.7,
             (255, 255, 255),
@@ -448,33 +549,13 @@ while True:
         2
     )
 
-    serial_status = (
-        "🟢 SERIAL"
-        if serial_cmd
-        else "🔴 SIN SERIAL"
-    )
-
-    cv2.putText(
-        frame,
-        serial_status,
-        (TARGET_WIDTH - 220, 30),
-        cv2.FONT_HERSHEY_SIMPLEX,
-        0.6,
-        (0, 255, 0) if serial_cmd else (0, 0, 255),
-        2
-    )
-
-    # ======================================
-    # SHOW
-    # ======================================
-
     cv2.imshow(WIN_NAME, frame)
+    if MASKON:
+        cv2.imshow("Mask", mask)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
-# ==========================================
-# LIMPIEZA
 # ==========================================
 
 print("\n🛑 Cerrando...")

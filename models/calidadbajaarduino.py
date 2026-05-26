@@ -13,7 +13,7 @@ load_dotenv('.env')
 # ================= CONFIG =================
 
 USE_IP_CAMERA = False
-USE_TRACKBARS = True
+USE_TRACKBARS = False
 USE_SERIAL = True
 
 if USE_IP_CAMERA:

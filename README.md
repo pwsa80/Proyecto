@@ -16,10 +16,14 @@ copy con .env
 ```
 
 ## Setup
+
+en caso de no tener el arduino configurado aún carge el codigo de "arduino/load.ino"
+
 ###### primera ejecución o reinicio
 ```
 setup.bat
 ```
+
 
 ## Run code
 ```
