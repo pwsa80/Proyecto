@@ -23,7 +23,10 @@ en caso de no tener el arduino configurado aún carge el codigo de "arduino/load
 ```
 setup.bat
 ```
+##Diagrama
 
+diagrama de conexiones con Arduino
+<img width="404" height="286" alt="image" src="https://github.com/user-attachments/assets/cb38545c-5cca-47b4-a833-b2c606e1e4a0" />
 
 ## Run code
 ```
