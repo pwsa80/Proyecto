@@ -10,7 +10,7 @@ load_dotenv('.env')
 
 # ================= CONFIG =================
 
-USE_IP_CAMERA = False
+USE_IP_CAMERA = True
 USE_TRACKBARS = False
 MASKON = False
 USE_SERIAL = True
@@ -398,7 +398,7 @@ while True:
         servo_x = np.interp(
             error_x,
             [-MAX_ERROR_X, MAX_ERROR_X],
-            [0, 180]
+            [180, 0]
         )
 
         servo_x = int(np.clip(servo_x, 0, 180))
