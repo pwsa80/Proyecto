@@ -1,5 +1,5 @@
 ## Actualmente en camera-system
-
+import tkinter as tk
 import cv2
 import numpy as np
 import time
@@ -13,7 +13,6 @@ load_dotenv('.env')
 # ================= CONFIG =================
 
 USE_IP_CAMERA = False
-USE_TRACKBARS = False
 MASKON = False
 USE_SERIAL = True
 
@@ -25,14 +24,25 @@ else:
 TARGET_WIDTH = 1200
 TARGET_HEIGHT = 900
 
-# ===== DETECCIÓN =====
+# ===== DETECCIÓN RGB =====
 
-H_BASE = 15
-H_MARGIN = 18
-S_MIN = 150
-V_MIN = 120
-S_MAX = 255
-V_MAX = 255
+# Color objetivo en formato RGB
+# Ejemplo: (135, 100, 20)
+TARGET_COLOR_RGB = (240, 100, 80)
+
+RGB_MARGIN_R = 30
+RGB_MARGIN_G = 30
+RGB_MARGIN_B = 30
+
+# Valores máximos y mínimos calculados automáticamente
+R_MIN = max(TARGET_COLOR_RGB[0] - RGB_MARGIN_R, 0)
+R_MAX = min(TARGET_COLOR_RGB[0] + RGB_MARGIN_R, 255)
+
+G_MIN = max(TARGET_COLOR_RGB[1] - RGB_MARGIN_G, 0)
+G_MAX = min(TARGET_COLOR_RGB[1] + RGB_MARGIN_G, 255)
+
+B_MIN = max(TARGET_COLOR_RGB[2] - RGB_MARGIN_B, 0)
+B_MAX = min(TARGET_COLOR_RGB[2] + RGB_MARGIN_B, 255)
 
 MIN_AREA = 500
 ASPECT_TOL = 0.6
@@ -44,12 +54,351 @@ prev_center = None
 
 # ===== SERVOS =====
 
-prev_servo_x = 90
-prev_servo_y = 90
+X_MIN_ANGLE = 0
+X_MAX_ANGLE = 70
+
+Y_MIN_ANGLE = 0
+Y_MAX_ANGLE = 50
+
+# Centro de los rangos calibrados
+CENTER_X = (X_MIN_ANGLE + X_MAX_ANGLE) // 2
+CENTER_Y = (Y_MIN_ANGLE + Y_MAX_ANGLE) // 2
+
+prev_servo_x = CENTER_X
+prev_servo_y = CENTER_Y
 
 SEND_INTERVAL = 0.015
 
-WIN_NAME = "Tracking Balon Naranja"
+WIN_NAME = "Tracking"
+
+
+# ==========================================
+# CONFIGURACIÓN RGB
+# ==========================================
+
+def create_rgb_window():
+
+    global TARGET_COLOR_RGB
+    global RGB_MARGIN_R
+    global RGB_MARGIN_G
+    global RGB_MARGIN_B
+
+    global R_MIN
+    global R_MAX
+    global G_MIN
+    global G_MAX
+    global B_MIN
+    global B_MAX
+
+    rgb_window = tk.Tk()
+
+    rgb_window.title("Configuración RGB")
+    rgb_window.resizable(False, False)
+
+    # ======================================
+    # FUNCIÓN APLICAR
+    # ======================================
+
+    def apply_rgb():
+
+        global TARGET_COLOR_RGB
+        global RGB_MARGIN_R
+        global RGB_MARGIN_G
+        global RGB_MARGIN_B
+
+        global R_MIN
+        global R_MAX
+        global G_MIN
+        global G_MAX
+        global B_MIN
+        global B_MAX
+
+        try:
+
+            r = int(entry_r.get())
+            g = int(entry_g.get())
+            b = int(entry_b.get())
+
+            margin_r = int(entry_margin_r.get())
+            margin_g = int(entry_margin_g.get())
+            margin_b = int(entry_margin_b.get())
+
+            # Limitar RGB
+            r = max(0, min(255, r))
+            g = max(0, min(255, g))
+            b = max(0, min(255, b))
+
+            # Limitar márgenes
+            margin_r = max(0, min(255, margin_r))
+            margin_g = max(0, min(255, margin_g))
+            margin_b = max(0, min(255, margin_b))
+
+            # Guardar valores
+            TARGET_COLOR_RGB = (r, g, b)
+
+            RGB_MARGIN_R = margin_r
+            RGB_MARGIN_G = margin_g
+            RGB_MARGIN_B = margin_b
+
+            # Calcular límites
+            R_MIN = max(r - margin_r, 0)
+            R_MAX = min(r + margin_r, 255)
+
+            G_MIN = max(g - margin_g, 0)
+            G_MAX = min(g + margin_g, 255)
+
+            B_MIN = max(b - margin_b, 0)
+            B_MAX = min(b + margin_b, 255)
+
+            print("\n🎨 RGB ACTUALIZADO")
+
+            print(
+                f"   Objetivo: {TARGET_COLOR_RGB}"
+            )
+
+            print(
+                f"   R: {R_MIN} - {R_MAX}"
+            )
+
+            print(
+                f"   G: {G_MIN} - {G_MAX}"
+            )
+
+            print(
+                f"   B: {B_MIN} - {B_MAX}"
+            )
+
+        except ValueError:
+
+            print(
+                "⚠️ Introduce solamente números."
+            )
+
+    # ======================================
+    # TÍTULO
+    # ======================================
+
+    tk.Label(
+        rgb_window,
+        text="COLOR OBJETIVO RGB"
+    ).grid(
+        row=0,
+        column=0,
+        columnspan=2,
+        pady=8
+    )
+
+    # ======================================
+    # R
+    # ======================================
+
+    tk.Label(
+        rgb_window,
+        text="R:"
+    ).grid(
+        row=1,
+        column=0,
+        padx=10,
+        pady=3
+    )
+
+    entry_r = tk.Entry(
+        rgb_window,
+        width=8
+    )
+
+    entry_r.insert(
+        0,
+        str(TARGET_COLOR_RGB[0])
+    )
+
+    entry_r.grid(
+        row=1,
+        column=1,
+        padx=10,
+        pady=3
+    )
+
+    # ======================================
+    # G
+    # ======================================
+
+    tk.Label(
+        rgb_window,
+        text="G:"
+    ).grid(
+        row=2,
+        column=0,
+        padx=10,
+        pady=3
+    )
+
+    entry_g = tk.Entry(
+        rgb_window,
+        width=8
+    )
+
+    entry_g.insert(
+        0,
+        str(TARGET_COLOR_RGB[1])
+    )
+
+    entry_g.grid(
+        row=2,
+        column=1,
+        padx=10,
+        pady=3
+    )
+
+    # ======================================
+    # B
+    # ======================================
+
+    tk.Label(
+        rgb_window,
+        text="B:"
+    ).grid(
+        row=3,
+        column=0,
+        padx=10,
+        pady=3
+    )
+
+    entry_b = tk.Entry(
+        rgb_window,
+        width=8
+    )
+
+    entry_b.insert(
+        0,
+        str(TARGET_COLOR_RGB[2])
+    )
+
+    entry_b.grid(
+        row=3,
+        column=1,
+        padx=10,
+        pady=3
+    )
+
+    # ======================================
+    # MÁRGENES
+    # ======================================
+
+    tk.Label(
+        rgb_window,
+        text="MÁRGENES"
+    ).grid(
+        row=4,
+        column=0,
+        columnspan=2,
+        pady=8
+    )
+
+    # Margen R
+
+    tk.Label(
+        rgb_window,
+        text="Margen R:"
+    ).grid(
+        row=5,
+        column=0,
+        padx=10,
+        pady=3
+    )
+
+    entry_margin_r = tk.Entry(
+        rgb_window,
+        width=8
+    )
+
+    entry_margin_r.insert(
+        0,
+        str(RGB_MARGIN_R)
+    )
+
+    entry_margin_r.grid(
+        row=5,
+        column=1,
+        padx=10,
+        pady=3
+    )
+
+    # Margen G
+
+    tk.Label(
+        rgb_window,
+        text="Margen G:"
+    ).grid(
+        row=6,
+        column=0,
+        padx=10,
+        pady=3
+    )
+
+    entry_margin_g = tk.Entry(
+        rgb_window,
+        width=8
+    )
+
+    entry_margin_g.insert(
+        0,
+        str(RGB_MARGIN_G)
+    )
+
+    entry_margin_g.grid(
+        row=6,
+        column=1,
+        padx=10,
+        pady=3
+    )
+
+    # Margen B
+
+    tk.Label(
+        rgb_window,
+        text="Margen B:"
+    ).grid(
+        row=7,
+        column=0,
+        padx=10,
+        pady=3
+    )
+
+    entry_margin_b = tk.Entry(
+        rgb_window,
+        width=8
+    )
+
+    entry_margin_b.insert(
+        0,
+        str(RGB_MARGIN_B)
+    )
+
+    entry_margin_b.grid(
+        row=7,
+        column=1,
+        padx=10,
+        pady=3
+    )
+
+    # ======================================
+    # BOTÓN APLICAR
+    # ======================================
+
+    tk.Button(
+        rgb_window,
+        text="APLICAR",
+        command=apply_rgb,
+        width=15
+    ).grid(
+        row=8,
+        column=0,
+        columnspan=2,
+        pady=12
+    )
+
+    return rgb_window
 
 # ==========================================
 
@@ -108,7 +457,7 @@ class SerialCommander:
 
         print(f"✅ Serial conectado: {port}")
 
-    def send(self, angle_x, angle_y):
+    def send(self, angle_x, angle_y, detected):
 
         current_time = time.time()
 
@@ -117,7 +466,10 @@ class SerialCommander:
 
         try:
 
-            command = f"{angle_x},{angle_y}\n"
+            if detected:
+                command = f"{angle_x},{angle_y},1\n"
+            else:
+                command = "D0\n"
 
             self.ser.write(command.encode())
 
@@ -180,42 +532,10 @@ if not cap.isOpened():
 cv2.namedWindow(WIN_NAME)
 
 # ==========================================
-# TRACKBARS
+# INICIAR CONFIGURACIÓN RGB
 # ==========================================
 
-if USE_TRACKBARS:
-
-    cv2.createTrackbar(
-        "H",
-        WIN_NAME,
-        H_BASE,
-        179,
-        lambda x: None
-    )
-
-    cv2.createTrackbar(
-        "H_MARGIN",
-        WIN_NAME,
-        H_MARGIN,
-        50,
-        lambda x: None
-    )
-
-    cv2.createTrackbar(
-        "S_MIN",
-        WIN_NAME,
-        S_MIN,
-        255,
-        lambda x: None
-    )
-
-    cv2.createTrackbar(
-        "V_MIN",
-        WIN_NAME,
-        V_MIN,
-        255,
-        lambda x: None
-    )
+rgb_window = create_rgb_window()
 
 
 # ==========================================
@@ -237,6 +557,18 @@ while True:
         break
 
     # ======================================
+    # ACTUALIZAR VENTANA RGB
+    # ======================================
+
+    try:
+
+        rgb_window.update_idletasks()
+        rgb_window.update()
+
+    except tk.TclError:
+
+        break
+    # ======================================
     # RESIZE ORIGINAL
     # ======================================
 
@@ -252,56 +584,33 @@ while True:
         (int(w * scale), int(h * scale))
     )
 
-    # ======================================
-    # TRACKBARS
-    # ======================================
-
-    if USE_TRACKBARS:
-
-        try:
-
-            H_BASE = cv2.getTrackbarPos(
-                "H",
-                WIN_NAME
-            )
-
-            H_MARGIN = cv2.getTrackbarPos(
-                "H_MARGIN",
-                WIN_NAME
-            )
-
-            S_MIN = cv2.getTrackbarPos(
-                "S_MIN",
-                WIN_NAME
-            )
-
-            V_MIN = cv2.getTrackbarPos(
-                "V_MIN",
-                WIN_NAME
-            )
-
-        except:
-            pass
 
     # ======================================
-    # HSV
+    # RGB
     # ======================================
 
-    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+    frame_rgb = cv2.cvtColor(
+        frame,
+        cv2.COLOR_BGR2RGB
+    )
 
     lower = np.array([
-        max(H_BASE - H_MARGIN, 0),
-        S_MIN,
-        V_MIN
-    ])
+        R_MIN,
+        G_MIN,
+        B_MIN
+    ], dtype=np.uint8)
 
     upper = np.array([
-        min(H_BASE + H_MARGIN, 179),
-        S_MAX,
-        V_MAX
-    ])
+        R_MAX,
+        G_MAX,
+        B_MAX
+    ], dtype=np.uint8)
 
-    mask = cv2.inRange(hsv, lower, upper)
+    mask = cv2.inRange(
+        frame_rgb,
+        lower,
+        upper
+    )
 
     # ======================================
     # LIMPIEZA
@@ -400,10 +709,16 @@ while True:
         servo_x = np.interp(
             error_x,
             [-MAX_ERROR_X, MAX_ERROR_X],
-            [70, 0]
+            [X_MAX_ANGLE, X_MIN_ANGLE]
         )
 
-        servo_x = int(np.clip(servo_x, 0, 180))
+        servo_x = int(
+            np.clip(
+                servo_x,
+                X_MIN_ANGLE,
+                X_MAX_ANGLE
+            )
+        )
 
         # ==================================
         # MAPEO Y
@@ -414,10 +729,16 @@ while True:
         servo_y = np.interp(
             error_y,
             [-MAX_ERROR_Y, MAX_ERROR_Y],
-            [0, 50]
+            [Y_MIN_ANGLE, Y_MAX_ANGLE]
         )
 
-        servo_y = int(np.clip(servo_y, 0, 180))
+        servo_y = int(
+            np.clip(
+                servo_y,
+                Y_MIN_ANGLE,
+                Y_MAX_ANGLE
+            )
+        )
 
         # ==================================
         # SUAVIZADO SERVOS
@@ -444,7 +765,8 @@ while True:
 
             serial_cmd.send(
                 servo_x,
-                servo_y
+                servo_y,
+                True
             )
 
         # ==================================
@@ -528,6 +850,13 @@ while True:
     else:
 
         prev_center = None
+
+        if serial_cmd:
+            serial_cmd.send(
+                0,
+                0,
+                False
+            )
 
     # ======================================
     # FPS

@@ -5,9 +5,10 @@ Servo servoY;
 
 #define SERVO_X_PIN 9
 #define SERVO_Y_PIN 11
+#define LED_PIN 13
 
-int currentAngleX = 90;
-int currentAngleY = 90;
+int currentAngleX = 35;
+int currentAngleY = 25;
 
 char buffer[32];
 byte indexBuffer = 0;
@@ -18,6 +19,9 @@ void setup() {
 
   servoX.attach(SERVO_X_PIN);
   servoY.attach(SERVO_Y_PIN);
+
+  pinMode(LED_PIN, OUTPUT);
+  digitalWrite(LED_PIN, LOW);
 
   servoX.write(currentAngleX);
   servoY.write(currentAngleY);
@@ -33,23 +37,50 @@ void loop() {
 
     if (c == '\n') {
 
-      buffer[indexBuffer] = '\0';
+        buffer[indexBuffer] = '\0';
 
-      int angleX = 90;
-      int angleY = 90;
+        int angleX;
+        int angleY;
+        int detected;
 
-      sscanf(buffer, "%d,%d", &angleX, &angleY);
+        // Comando para apagar el LED
+        if (strncmp(buffer, "D0", 2) == 0) {
 
-      angleX = constrain(angleX, 0, 180);
-      angleY = constrain(angleY, 0, 180);
+            digitalWrite(LED_PIN, LOW);
 
-      currentAngleX = angleX;
-      currentAngleY = angleY;
+        }
 
-      servoX.write(currentAngleX);
-      servoY.write(currentAngleY);
+        // Comando de movimiento + detección
+        else if (sscanf(buffer, "%d,%d,%d",
+                        &angleX,
+                        &angleY,
+                        &detected) == 3) {
 
-      indexBuffer = 0;
+            angleX = constrain(
+                angleX,
+                0,
+                180
+            );
+
+            angleY = constrain(
+                angleY,
+                0,
+                180
+            );
+
+            if (detected) {
+
+                digitalWrite(LED_PIN, HIGH);
+
+                currentAngleX = angleX;
+                currentAngleY = angleY;
+
+                servoX.write(currentAngleX);
+                servoY.write(currentAngleY);
+            }
+        }
+
+        indexBuffer = 0;
     }
 
     else {
