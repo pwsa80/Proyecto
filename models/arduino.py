@@ -20,7 +20,7 @@ USE_SERIAL = True
 if USE_IP_CAMERA:
     CAMERA_SOURCE = os.getenv('VIDEO_LINK')
 else:
-    CAMERA_SOURCE = 0
+    CAMERA_SOURCE = 1
 
 TARGET_WIDTH = 1200
 TARGET_HEIGHT = 900
@@ -29,7 +29,7 @@ TARGET_HEIGHT = 900
 
 H_BASE = 15
 H_MARGIN = 18
-S_MIN = 200
+S_MIN = 150
 V_MIN = 120
 S_MAX = 255
 V_MAX = 255
@@ -400,7 +400,7 @@ while True:
         servo_x = np.interp(
             error_x,
             [-MAX_ERROR_X, MAX_ERROR_X],
-            [0, 180]
+            [70, 0]
         )
 
         servo_x = int(np.clip(servo_x, 0, 180))
@@ -414,7 +414,7 @@ while True:
         servo_y = np.interp(
             error_y,
             [-MAX_ERROR_Y, MAX_ERROR_Y],
-            [0, 180]
+            [0, 50]
         )
 
         servo_y = int(np.clip(servo_y, 0, 180))
