@@ -400,15 +400,8 @@ def pick_rgb_from_display(event):
     if display_width <= 0 or display_height <= 0:
         return True
 
-    # Como la imagen mostrada y la imagen usada por el picker
-    # tienen exactamente display_width x display_height,
-    # no hay offset de un cuadro externo que pueda desplazar el click.
     x = int(event.x * w / display_width)
-
-    # Corrección del desfase vertical de 4°
     y = int(event.y * h / display_height)
-
-    y += int((4 / (Y_MAX_ANGLE - Y_MIN_ANGLE)) * (h - 1))
 
     x = int(np.clip(x, 0, w - 1))
     y = int(np.clip(y, 0, h - 1))
@@ -1005,6 +998,67 @@ root.protocol("WM_DELETE_WINDOW", close_app)
 root.bind("<KeyPress-q>", lambda event: close_app())
 root.bind("<Escape>", lambda event: close_app())
 
+# ------------------------------------------------------------
+# TECLADO — MOVIMIENTO MANUAL
+# ------------------------------------------------------------
+
+keys_pressed = set()
+
+
+def keyboard_press(event):
+    global joystick_x, joystick_y
+
+    if mode != "MANUAL":
+        return
+
+    key = event.keysym.lower()
+    keys_pressed.add(key)
+
+    joystick_x = 0.0
+    joystick_y = 0.0
+
+    if "a" in keys_pressed or "left" in keys_pressed:
+        joystick_x = -1.0
+
+    if "d" in keys_pressed or "right" in keys_pressed:
+        joystick_x = 1.0
+
+    if "w" in keys_pressed or "up" in keys_pressed:
+        joystick_y = -1.0
+
+    if "s" in keys_pressed or "down" in keys_pressed:
+        joystick_y = 1.0
+
+    update_joystick_visual()
+
+
+def keyboard_release(event):
+    global joystick_x, joystick_y
+
+    key = event.keysym.lower()
+    keys_pressed.discard(key)
+
+    joystick_x = 0.0
+    joystick_y = 0.0
+
+    if "a" in keys_pressed or "left" in keys_pressed:
+        joystick_x = -1.0
+
+    if "d" in keys_pressed or "right" in keys_pressed:
+        joystick_x = 1.0
+
+    if "w" in keys_pressed or "up" in keys_pressed:
+        joystick_y = -1.0
+
+    if "s" in keys_pressed or "down" in keys_pressed:
+        joystick_y = 1.0
+
+    update_joystick_visual()
+
+
+root.bind("<KeyPress>", keyboard_press)
+root.bind("<KeyRelease>", keyboard_release)
+
 main = ttk.Frame(root, padding=10)
 main.pack(fill="both", expand=True)
 
@@ -1314,34 +1368,6 @@ ttk.Label(
     column=0,
     columnspan=3
 )
-
-# ------------------------------------------------------------
-# AYUDA
-# ------------------------------------------------------------
-
-help_frame = ttk.LabelFrame(
-    control_frame,
-    text="Controles",
-    padding=8
-)
-
-help_frame.pack(fill="x")
-
-ttk.Label(
-    help_frame,
-    text=(
-        "MANUAL:\n"
-        "• Arrastra el joystick para mover.\n"
-        "• Click en la cámara = apunta.\n"
-        "• Cuentagotas = toma RGB del punto elegido.\n"
-        "• Suelta el joystick = detiene.\n\n"
-        "AUTO:\n"
-        "• El objetivo RGB controla los servos.\n\n"
-        "Q / ESC = salir"
-    ),
-    justify="left",
-    wraplength=270
-).pack()
 
 # ============================================================
 # INICIO
